@@ -48,7 +48,6 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
     static id instance;
     dispatch_once(&once, ^{
         instance = [self new];
-        kPNGSignatureData = [NSData dataWithBytes:kPNGSignatureBytes length:8];
     });
     return instance;
 }
@@ -78,6 +77,13 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
         dispatch_sync(_ioQueue, ^{
             _fileManager = [NSFileManager new];
         });
+		
+		
+		static dispatch_once_t sd_createPNGSignatureToken;
+		dispatch_once(&sd_createPNGSignatureToken, ^{
+			kPNGSignatureData = [NSData dataWithBytes:kPNGSignatureBytes length:8];
+		});
+		
 
 #if TARGET_OS_IPHONE
         // Subscribe to app events
@@ -165,7 +171,7 @@ BOOL ImageDataHasPNGPreffix(NSData *data) {
                 BOOL imageIsPng = YES;
 
                 // But if we have an image data, we will look at the preffix
-                if ([imageData length] >= [kPNGSignatureData length]) {
+                if (imageData && ([imageData length] >= [kPNGSignatureData length])) {
                     imageIsPng = ImageDataHasPNGPreffix(imageData);
                 }
 
